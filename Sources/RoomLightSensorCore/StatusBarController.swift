@@ -8,17 +8,11 @@ final class StatusBarController: NSObject {
         static let menuBarPopoverGap: CGFloat = 6
     }
 
-    private struct StatusItemState {
-        let title: String
-        let length: CGFloat
-    }
-
     private let statusItem: NSStatusItem
     private let popover = NSPopover()
     private let settings: SettingsStore
     private let monitor: LuxMonitor
     private var cancellables = Set<AnyCancellable>()
-    private var deferredStatusItemState: StatusItemState?
 
     init(
         settings: SettingsStore,
@@ -60,7 +54,6 @@ final class StatusBarController: NSObject {
         notificationManager: NotificationManager,
         launchAtLoginManager: LaunchAtLoginManager
     ) {
-        popover.delegate = self
         popover.behavior = .transient
         popover.contentSize = NSSize(width: 360, height: 470)
         popover.contentViewController = NSHostingController(
@@ -84,40 +77,24 @@ final class StatusBarController: NSObject {
     }
 
     private func updateStatusItem(lux: Double?, status: SensorStatus, showLux: Bool) {
-        let state = statusItemState(lux: lux, status: status, showLux: showLux)
-
-        if popover.isShown {
-            deferredStatusItemState = state
-            return
-        }
-
-        applyStatusItemState(state)
-    }
-
-    private func statusItemState(lux: Double?, status: SensorStatus, showLux: Bool) -> StatusItemState {
-        let title: String
-        switch status {
-        case .unavailable:
-            title = "No ALS"
-        case .failed:
-            title = "ALS !"
-        case .waiting, .reading:
-            title = showLux ? LuxFormatter.menuBarString(for: lux) : ""
-        }
-
-        return StatusItemState(
-            title: title,
-            length: title.isEmpty ? NSStatusItem.squareLength : NSStatusItem.variableLength
-        )
-    }
-
-    private func applyStatusItemState(_ state: StatusItemState) {
         guard let button = statusItem.button else {
             return
         }
 
-        button.title = state.title
-        statusItem.length = state.length
+        switch status {
+        case .unavailable:
+            button.title = "No ALS"
+        case .failed:
+            button.title = "ALS !"
+        case .waiting, .reading:
+            button.title = showLux ? LuxFormatter.menuBarString(for: lux) : ""
+        }
+
+        statusItem.length = button.title.isEmpty ? NSStatusItem.squareLength : NSStatusItem.variableLength
+
+        if popover.isShown {
+            schedulePopoverPositionUpdate()
+        }
     }
 
     @objc private func togglePopover(_ sender: AnyObject?) {
@@ -134,15 +111,17 @@ final class StatusBarController: NSObject {
 
     private func showPopover(from button: NSStatusBarButton) {
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-        schedulePopoverVerticalPositionUpdate()
+        schedulePopoverPositionUpdate()
         popover.contentViewController?.view.window?.makeKey()
     }
 
-    private func schedulePopoverVerticalPositionUpdate() {
+    private func schedulePopoverPositionUpdate() {
         positionPopoverWindowNearStatusItem()
 
         Task { @MainActor [weak self] in
             await Task.yield()
+            self?.positionPopoverWindowNearStatusItem()
+            try? await Task.sleep(nanoseconds: 50_000_000)
             self?.positionPopoverWindowNearStatusItem()
         }
     }
@@ -164,26 +143,33 @@ final class StatusBarController: NSObject {
         }
 
         let screenFrame = buttonWindow.screen?.visibleFrame ?? NSScreen.main?.visibleFrame
+        let anchorFrameOnScreen = buttonWindow.convertToScreen(
+            button.convert(anchorRect(in: button), to: nil)
+        )
 
         var frame = popoverWindow.frame
+        frame.origin.x = anchorFrameOnScreen.midX - (frame.width / 2)
 
         if let screenFrame {
             frame.origin.y = screenFrame.maxY - Layout.menuBarPopoverGap - frame.height
+            let minimumX = screenFrame.minX + Layout.menuBarPopoverGap
+            let maximumX = screenFrame.maxX - Layout.menuBarPopoverGap - frame.width
             let minimumY = screenFrame.minY + Layout.menuBarPopoverGap
+            frame.origin.x = min(max(frame.origin.x, minimumX), maximumX)
             frame.origin.y = max(frame.origin.y, minimumY)
         }
 
         popoverWindow.setFrame(frame, display: true)
     }
-}
 
-extension StatusBarController: NSPopoverDelegate {
-    func popoverDidClose(_ notification: Notification) {
-        guard let deferredStatusItemState else {
-            return
+    private func anchorRect(in button: NSStatusBarButton) -> NSRect {
+        guard
+            let imageRect = (button.cell as? NSButtonCell)?.imageRect(forBounds: button.bounds),
+            !imageRect.isEmpty
+        else {
+            return button.bounds
         }
 
-        self.deferredStatusItemState = nil
-        applyStatusItemState(deferredStatusItemState)
+        return imageRect
     }
 }
