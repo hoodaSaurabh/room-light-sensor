@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Resolve version
         id: version
@@ -31,7 +31,7 @@ jobs:
         run: shasum -a 256 ".build/package/Room Light Sensor-${{ steps.version.outputs.version }}.dmg" > ".build/package/Room Light Sensor-${{ steps.version.outputs.version }}.dmg.sha256"
 
       - name: Publish GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: |
             .build/package/Room Light Sensor-${{ steps.version.outputs.version }}.dmg
