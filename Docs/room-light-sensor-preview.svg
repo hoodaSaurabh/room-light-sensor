@@ -1,0 +1,146 @@
+<svg width="1440" height="920" viewBox="0 0 1440 920" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Room Light Sensor menu bar app preview</title>
+  <desc id="desc">A macOS style preview showing the Room Light Sensor menu bar icon, current lux value, threshold controls, notifications, and launch at login settings.</desc>
+  <defs>
+    <filter id="shadow" x="-25%" y="-20%" width="150%" height="150%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="24" stdDeviation="28" flood-color="#1f2937" flood-opacity="0.22"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#1f2937" flood-opacity="0.14"/>
+    </filter>
+    <filter id="menuShadow" x="0" y="-40%" width="100%" height="220%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="3" stdDeviation="6" flood-color="#1f2937" flood-opacity="0.08"/>
+    </filter>
+    <linearGradient id="background" x1="122" y1="56" x2="1260" y2="850" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EEF5FF"/>
+      <stop offset="0.54" stop-color="#F8FAFC"/>
+      <stop offset="1" stop-color="#F3F7F0"/>
+    </linearGradient>
+    <linearGradient id="popover" x1="784" y1="84" x2="1146" y2="750" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F8FAFC"/>
+    </linearGradient>
+    <linearGradient id="screenGlow" x1="320" y1="160" x2="980" y2="720" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C7D2FE" stop-opacity="0.42"/>
+      <stop offset="0.48" stop-color="#BAE6FD" stop-opacity="0.2"/>
+      <stop offset="1" stop-color="#DCFCE7" stop-opacity="0.36"/>
+    </linearGradient>
+    <linearGradient id="sun" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#FACC15"/>
+      <stop offset="1" stop-color="#F97316"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1440" height="920" fill="url(#background)"/>
+  <circle cx="416" cy="290" r="260" fill="url(#screenGlow)"/>
+  <circle cx="1104" cy="684" r="196" fill="#DCFCE7" opacity="0.36"/>
+  <rect x="120" y="104" width="1200" height="700" rx="34" fill="#FFFFFF" stroke="#DCE4EE" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="120" y="104" width="1200" height="46" rx="34" fill="#F8FAFC" filter="url(#menuShadow)"/>
+  <path d="M120 138C120 147 127 150 136 150H1304C1313 150 1320 147 1320 138V150H120V138Z" fill="#F8FAFC"/>
+  <line x1="120" y1="150" x2="1320" y2="150" stroke="#E2E8F0"/>
+
+  <circle cx="152" cy="127" r="6" fill="#FF5F57"/>
+  <circle cx="174" cy="127" r="6" fill="#FEBC2E"/>
+  <circle cx="196" cy="127" r="6" fill="#28C840"/>
+  <text x="232" y="132" fill="#334155" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="600">Room Light Sensor</text>
+  <text x="580" y="132" fill="#64748B" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif" font-size="15">File</text>
+  <text x="626" y="132" fill="#64748B" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif" font-size="15">Edit</text>
+  <text x="676" y="132" fill="#64748B" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif" font-size="15">View</text>
+
+  <g transform="translate(988 112)">
+    <rect x="0" y="0" width="106" height="30" rx="15" fill="#EAF2FF" stroke="#C8D9F4"/>
+    <g transform="translate(14 7)">
+      <circle cx="8" cy="8" r="5.5" fill="url(#sun)"/>
+      <path d="M8 0.5V3M8 13V15.5M15.5 8H13M3 8H0.5M13.3 2.7L11.5 4.5M4.5 11.5L2.7 13.3M13.3 13.3L11.5 11.5M4.5 4.5L2.7 2.7" stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round"/>
+    </g>
+    <text x="38" y="20" fill="#0F172A" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="600">412 lx</text>
+  </g>
+  <circle cx="1128" cy="127" r="6" fill="#94A3B8"/>
+  <circle cx="1152" cy="127" r="6" fill="#94A3B8"/>
+  <rect x="1177" y="119" width="34" height="16" rx="8" fill="#CBD5E1"/>
+  <text x="1230" y="132" fill="#475569" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="500">7:42 PM</text>
+
+  <path d="M1039 153L1056 176H1022L1039 153Z" fill="#FFFFFF"/>
+  <rect x="798" y="168" width="484" height="604" rx="22" fill="url(#popover)" stroke="#D8E0EA" stroke-width="1.5" filter="url(#shadow)"/>
+
+  <g transform="translate(838 208)">
+    <text x="0" y="50" fill="#0F172A" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif" font-size="48" font-weight="700">412.6 lux</text>
+    <g transform="translate(372 20)">
+      <circle cx="25" cy="25" r="19" fill="#DCFCE7"/>
+      <path d="M16 26L22 32L35 18" stroke="#16A34A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <text x="0" y="82" fill="#64748B" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif" font-size="17">Monitoring the room once per second</text>
+  </g>
+
+  <line x1="838" y1="318" x2="1242" y2="318" stroke="#E2E8F0"/>
+
+  <g transform="translate(838 348)">
+    <text x="0" y="21" fill="#0F172A" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif" font-size="19" font-weight="500">Show Lux units in the menu bar</text>
+    <g transform="translate(342 0)">
+      <rect x="0" y="0" width="62" height="34" rx="17" fill="#2563EB"/>
+      <circle cx="45" cy="17" r="13" fill="#FFFFFF"/>
+    </g>
+  </g>
+
+  <g transform="translate(838 420)">
+    <text x="0" y="0" fill="#0F172A" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif" font-size="20" font-weight="700">Thresholds</text>
+    <g transform="translate(0 28)">
+      <text x="0" y="31" fill="#334155" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif" font-size="18">Low</text>
+      <rect x="196" y="4" width="96" height="38" rx="8" fill="#FFFFFF" stroke="#CBD5E1"/>
+      <text x="246" y="29" text-anchor="middle" fill="#0F172A" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="17">50</text>
+      <text x="304" y="30" fill="#64748B" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif" font-size="17">lux</text>
+      <rect x="354" y="4" width="50" height="38" rx="9" fill="#F8FAFC" stroke="#CBD5E1"/>
+      <path d="M371 25L379 17L387 25" stroke="#475569" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <g transform="translate(0 82)">
+      <text x="0" y="31" fill="#334155" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif" font-size="18">High</text>
+      <rect x="196" y="4" width="96" height="38" rx="8" fill="#FFFFFF" stroke="#CBD5E1"/>
+      <text x="246" y="29" text-anchor="middle" fill="#0F172A" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="17">1,000</text>
+      <text x="304" y="30" fill="#64748B" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif" font-size="17">lux</text>
+      <rect x="354" y="4" width="50" height="38" rx="9" fill="#F8FAFC" stroke="#CBD5E1"/>
+      <path d="M371 25L379 17L387 25" stroke="#475569" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <g transform="translate(0 140)">
+      <text x="0" y="27" fill="#334155" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif" font-size="18">Cooldown</text>
+      <rect x="314" y="0" width="90" height="36" rx="9" fill="#F8FAFC" stroke="#CBD5E1"/>
+      <text x="359" y="24" text-anchor="middle" fill="#0F172A" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="16">5 min</text>
+    </g>
+  </g>
+
+  <g transform="translate(838 610)">
+    <text x="0" y="21" fill="#0F172A" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif" font-size="19" font-weight="500">Notifications</text>
+    <g transform="translate(342 0)">
+      <rect x="0" y="0" width="62" height="34" rx="17" fill="#2563EB"/>
+      <circle cx="45" cy="17" r="13" fill="#FFFFFF"/>
+    </g>
+  </g>
+  <g transform="translate(838 668)">
+    <text x="0" y="21" fill="#0F172A" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif" font-size="19" font-weight="500">Launch at Login</text>
+    <g transform="translate(342 0)">
+      <rect x="0" y="0" width="62" height="34" rx="17" fill="#CBD5E1"/>
+      <circle cx="17" cy="17" r="13" fill="#FFFFFF"/>
+    </g>
+  </g>
+
+  <line x1="838" y1="718" x2="1242" y2="718" stroke="#E2E8F0"/>
+  <rect x="1166" y="733" width="76" height="34" rx="9" fill="#F8FAFC" stroke="#CBD5E1"/>
+  <text x="1204" y="755" text-anchor="middle" fill="#0F172A" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif" font-size="16" font-weight="600">Quit</text>
+
+  <g transform="translate(186 242)">
+    <text x="0" y="0" fill="#0F172A" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif" font-size="54" font-weight="750">Room Light Sensor</text>
+    <text x="0" y="48" fill="#475569" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif" font-size="24">A quiet menu bar utility for real-time room brightness alerts.</text>
+    <g transform="translate(0 102)">
+      <rect x="0" y="0" width="274" height="54" rx="16" fill="#FFFFFF" stroke="#D8E0EA"/>
+      <circle cx="28" cy="27" r="8" fill="#2563EB"/>
+      <text x="52" y="34" fill="#0F172A" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif" font-size="19" font-weight="600">Live lux in the menu bar</text>
+    </g>
+    <g transform="translate(0 176)">
+      <rect x="0" y="0" width="274" height="54" rx="16" fill="#FFFFFF" stroke="#D8E0EA"/>
+      <circle cx="28" cy="27" r="8" fill="#F97316"/>
+      <text x="52" y="34" fill="#0F172A" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif" font-size="19" font-weight="600">Low and high thresholds</text>
+    </g>
+    <g transform="translate(0 250)">
+      <rect x="0" y="0" width="274" height="54" rx="16" fill="#FFFFFF" stroke="#D8E0EA"/>
+      <circle cx="28" cy="27" r="8" fill="#16A34A"/>
+      <text x="52" y="34" fill="#0F172A" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif" font-size="19" font-weight="600">Notifications and login</text>
+    </g>
+  </g>
+</svg>

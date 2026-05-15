@@ -8,6 +8,10 @@ Room Light Sensor is a small native macOS menu bar app that reads your Mac's amb
 
 The app is intentionally simple: it lives in the menu bar, samples once per second, stores settings locally, and does not send any data anywhere.
 
+## Preview
+
+![Room Light Sensor menu bar app preview](Docs/room-light-sensor-preview.png)
+
 ## Features
 
 - Live ambient light readings in lux from the macOS IORegistry `CurrentLux` value.
