@@ -4,15 +4,12 @@ import SwiftUI
 
 @MainActor
 final class StatusBarController: NSObject {
-    private enum Layout {
-        static let menuBarPopoverGap: CGFloat = 6
-    }
-
     private let statusItem: NSStatusItem
     private let popover = NSPopover()
     private let settings: SettingsStore
     private let monitor: LuxMonitor
     private var cancellables = Set<AnyCancellable>()
+    private var popoverAnchorWindow: NSWindow?
 
     init(
         settings: SettingsStore,
@@ -55,8 +52,8 @@ final class StatusBarController: NSObject {
         launchAtLoginManager: LaunchAtLoginManager
     ) {
         popover.behavior = .transient
-        popover.contentSize = NSSize(width: 360, height: 470)
-        popover.contentViewController = NSHostingController(
+        popover.delegate = self
+        let hostingController = NSHostingController(
             rootView: SettingsView(
                 settings: settings,
                 monitor: monitor,
@@ -64,6 +61,8 @@ final class StatusBarController: NSObject {
                 launchAtLoginManager: launchAtLoginManager
             )
         )
+        hostingController.sizingOptions = [.preferredContentSize]
+        popover.contentViewController = hostingController
     }
 
     private func bindMonitor() {
@@ -91,10 +90,6 @@ final class StatusBarController: NSObject {
         }
 
         statusItem.length = button.title.isEmpty ? NSStatusItem.squareLength : NSStatusItem.variableLength
-
-        if popover.isShown {
-            schedulePopoverPositionUpdate()
-        }
     }
 
     @objc private func togglePopover(_ sender: AnyObject?) {
@@ -110,66 +105,67 @@ final class StatusBarController: NSObject {
     }
 
     private func showPopover(from button: NSStatusBarButton) {
-        popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-        schedulePopoverPositionUpdate()
-        popover.contentViewController?.view.window?.makeKey()
-    }
+        if let anchorWindow = makePopoverAnchorWindow(from: button),
+           let anchorView = anchorWindow.contentView {
+            popoverAnchorWindow = anchorWindow
+            anchorWindow.orderFrontRegardless()
+            popover.show(relativeTo: anchorView.bounds, of: anchorView, preferredEdge: .minY)
+        } else {
+            popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+        }
 
-    private func schedulePopoverPositionUpdate() {
-        positionPopoverWindowNearStatusItem()
-
+        activatePopoverWindow()
         Task { @MainActor [weak self] in
             await Task.yield()
-            self?.positionPopoverWindowNearStatusItem()
-            try? await Task.sleep(nanoseconds: 50_000_000)
-            self?.positionPopoverWindowNearStatusItem()
+            self?.activatePopoverWindow()
         }
     }
 
-    private func positionPopoverWindowNearStatusItem() {
-        guard popover.isShown, let button = statusItem.button else {
-            return
+    private func makePopoverAnchorWindow(from button: NSStatusBarButton) -> NSWindow? {
+        guard let buttonWindow = button.window else {
+            return nil
         }
 
-        positionPopoverWindow(near: button)
-    }
-
-    private func positionPopoverWindow(near button: NSStatusBarButton) {
-        guard
-            let popoverWindow = popover.contentViewController?.view.window,
-            let buttonWindow = button.window
-        else {
-            return
-        }
-
-        let screenFrame = buttonWindow.screen?.visibleFrame ?? NSScreen.main?.visibleFrame
-        let anchorFrameOnScreen = buttonWindow.convertToScreen(
-            button.convert(anchorRect(in: button), to: nil)
+        let anchorFrame = buttonWindow.convertToScreen(
+            button.convert(button.bounds, to: nil)
         )
+        let anchorWindow = PopoverAnchorWindow(
+            contentRect: anchorFrame,
+            styleMask: .borderless,
+            backing: .buffered,
+            defer: false
+        )
+        anchorWindow.backgroundColor = .clear
+        anchorWindow.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .ignoresCycle]
+        anchorWindow.hasShadow = false
+        anchorWindow.ignoresMouseEvents = true
+        anchorWindow.isOpaque = false
+        anchorWindow.isReleasedWhenClosed = false
+        anchorWindow.level = .statusBar
+        anchorWindow.contentView = NSView(frame: NSRect(origin: .zero, size: anchorFrame.size))
 
-        var frame = popoverWindow.frame
-        frame.origin.x = anchorFrameOnScreen.midX - (frame.width / 2)
-
-        if let screenFrame {
-            frame.origin.y = screenFrame.maxY - Layout.menuBarPopoverGap - frame.height
-            let minimumX = screenFrame.minX + Layout.menuBarPopoverGap
-            let maximumX = screenFrame.maxX - Layout.menuBarPopoverGap - frame.width
-            let minimumY = screenFrame.minY + Layout.menuBarPopoverGap
-            frame.origin.x = min(max(frame.origin.x, minimumX), maximumX)
-            frame.origin.y = max(frame.origin.y, minimumY)
-        }
-
-        popoverWindow.setFrame(frame, display: true)
+        return anchorWindow
     }
 
-    private func anchorRect(in button: NSStatusBarButton) -> NSRect {
-        guard
-            let imageRect = (button.cell as? NSButtonCell)?.imageRect(forBounds: button.bounds),
-            !imageRect.isEmpty
-        else {
-            return button.bounds
-        }
+    private func activatePopoverWindow() {
+        NSApp.activate(ignoringOtherApps: true)
+        popover.contentViewController?.view.window?.makeKeyAndOrderFront(nil)
+    }
+}
 
-        return imageRect
+extension StatusBarController: NSPopoverDelegate {
+    func popoverDidClose(_ notification: Notification) {
+        popoverAnchorWindow?.orderOut(nil)
+        popoverAnchorWindow = nil
+    }
+}
+
+private final class PopoverAnchorWindow: NSWindow {
+    override var canBecomeKey: Bool {
+        false
+    }
+
+    override var canBecomeMain: Bool {
+        false
     }
 }

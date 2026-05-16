@@ -26,7 +26,9 @@ struct SettingsView: View {
             Divider()
             footer
         }
-        .padding(18)
+        .padding(.horizontal, 18)
+        .padding(.top, 18)
+        .padding(.bottom, 18)
         .frame(width: 360)
     }
 
@@ -63,7 +65,7 @@ struct SettingsView: View {
 
     private var thresholdControls: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Thresholds")
+            Text("Notification thresholds")
                 .font(.headline)
 
             thresholdRow(
@@ -85,7 +87,7 @@ struct SettingsView: View {
             )
 
             HStack {
-                Text("Cooldown")
+                Text("Time between notifications")
                 Spacer()
                 Stepper(
                     value: Binding(

@@ -67,6 +67,14 @@ final class LuxMonitorTests: XCTestCase {
         XCTAssertFalse(SettingsStore(defaults: defaults).showLuxInMenuBar)
     }
 
+    func testThresholdDefaults() {
+        let defaults = isolatedDefaults()
+        let settings = SettingsStore(defaults: defaults)
+
+        XCTAssertEqual(settings.lowThreshold, 75)
+        XCTAssertEqual(settings.highThreshold, 300)
+    }
+
     private func isolatedDefaults() -> UserDefaults {
         let suiteName = "RoomLightSensorTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!

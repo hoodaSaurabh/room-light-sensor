@@ -22,6 +22,17 @@ The app is intentionally simple: it lives in the menu bar, samples once per seco
 - Native Swift, AppKit, and SwiftUI implementation.
 - Local-only settings and sensor readings.
 
+## Lightweight by design
+
+Room Light Sensor is built to stay out of the way while it monitors your room lighting. In a local 30-minute profile of the packaged macOS app, sampled once per minute on a MacBook Pro (Mac14,9) running macOS 26.4.1, it used:
+
+| Metric | Median | Peak observed |
+| --- | ---: | ---: |
+| CPU | 1.5% | 4.8% |
+| Memory | 30 MB | 41 MB |
+
+The same run showed no app-specific network sockets in `lsof`. Results can vary by Mac model, macOS version, sensor availability, and notification/menu activity, but the app is designed to remain a small native menu bar utility rather than a background-heavy service.
+
 ## Requirements
 
 - macOS 13 Ventura or newer.

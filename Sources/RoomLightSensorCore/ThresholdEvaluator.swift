@@ -12,8 +12,8 @@ struct ThresholdAlert: Equatable {
 }
 
 struct ThresholdConfiguration: Equatable {
-    static let defaultLow: Double = 50
-    static let defaultHigh: Double = 1_000
+    static let defaultLow: Double = 75
+    static let defaultHigh: Double = 300
     static let defaultCooldown: TimeInterval = 5 * 60
     static let defaultHysteresis: Double = 5
     static let minimumGap: Double = 1

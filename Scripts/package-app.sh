@@ -40,6 +40,10 @@ cp "$ROOT_DIR/Resources/Info.plist" "$APP_PATH/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $APP_VERSION" "$APP_PATH/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$APP_PATH/Contents/Info.plist"
 
+if [ -f "$ROOT_DIR/Resources/AppIcon.icns" ]; then
+    cp "$ROOT_DIR/Resources/AppIcon.icns" "$APP_PATH/Contents/Resources/AppIcon.icns"
+fi
+
 if [ -n "$SIGN_IDENTITY" ]; then
     codesign --force --options runtime --timestamp --sign "$SIGN_IDENTITY" "$APP_PATH"
 else

@@ -24,8 +24,24 @@ enum AmbientLightReadError: Error, Equatable, LocalizedError {
 
 final class IORegistryAmbientLightProvider: AmbientLightProvider {
     private let luxPropertyName = "CurrentLux" as CFString
+    private var cachedService: io_registry_entry_t = 0
+
+    deinit {
+        invalidateCachedService()
+    }
 
     func readLux() throws -> Double {
+        if cachedService != 0 {
+            if let lux = try readLux(from: cachedService) {
+                return lux
+            }
+            invalidateCachedService()
+        }
+
+        return try findAndCacheLuxService()
+    }
+
+    private func findAndCacheLuxService() throws -> Double {
         var iterator: io_iterator_t = 0
         let result = IORegistryCreateIterator(
             kIOMainPortDefault,
@@ -40,28 +56,58 @@ final class IORegistryAmbientLightProvider: AmbientLightProvider {
 
         defer { IOObjectRelease(iterator) }
 
-        var service = IOIteratorNext(iterator)
-        while service != 0 {
-            defer { service = IOIteratorNext(iterator) }
-            defer { IOObjectRelease(service) }
-
-            guard let value = IORegistryEntryCreateCFProperty(
-                service,
-                luxPropertyName,
-                kCFAllocatorDefault,
-                0
-            )?.takeRetainedValue() else {
-                continue
+        while true {
+            let service = IOIteratorNext(iterator)
+            guard service != 0 else {
+                break
             }
 
-            guard let lux = Self.doubleValue(from: value), lux.isFinite, lux >= 0 else {
-                throw AmbientLightReadError.invalidLuxValue
-            }
+            do {
+                guard let lux = try readLux(from: service) else {
+                    IOObjectRelease(service)
+                    continue
+                }
 
-            return lux
+                cacheService(service)
+                return lux
+            } catch {
+                IOObjectRelease(service)
+                throw error
+            }
         }
 
         throw AmbientLightReadError.sensorUnavailable
+    }
+
+    private func readLux(from service: io_registry_entry_t) throws -> Double? {
+        guard let value = IORegistryEntryCreateCFProperty(
+            service,
+            luxPropertyName,
+            kCFAllocatorDefault,
+            0
+        )?.takeRetainedValue() else {
+            return nil
+        }
+
+        guard let lux = Self.doubleValue(from: value), lux.isFinite, lux >= 0 else {
+            throw AmbientLightReadError.invalidLuxValue
+        }
+
+        return lux
+    }
+
+    private func cacheService(_ service: io_registry_entry_t) {
+        if cachedService != 0, cachedService != service {
+            IOObjectRelease(cachedService)
+        }
+        cachedService = service
+    }
+
+    private func invalidateCachedService() {
+        if cachedService != 0 {
+            IOObjectRelease(cachedService)
+            cachedService = 0
+        }
     }
 
     private static func doubleValue(from value: CFTypeRef) -> Double? {

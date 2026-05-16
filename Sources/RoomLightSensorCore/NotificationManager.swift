@@ -109,9 +109,15 @@ final class NotificationManager: NSObject, ObservableObject, AlertDelivering {
     private func body(for alert: ThresholdAlert, lux: Double) -> String {
         switch alert.kind {
         case .low:
-            return "Current reading: \(LuxFormatter.string(for: lux)). Low threshold: \(LuxFormatter.string(for: alert.threshold))."
+            return """
+            Current reading: \(LuxFormatter.string(for: lux))
+            Low threshold: \(LuxFormatter.string(for: alert.threshold))
+            """
         case .high:
-            return "Current reading: \(LuxFormatter.string(for: lux)). High threshold: \(LuxFormatter.string(for: alert.threshold))."
+            return """
+            Current reading: \(LuxFormatter.string(for: lux))
+            High threshold: \(LuxFormatter.string(for: alert.threshold))
+            """
         }
     }
 }
