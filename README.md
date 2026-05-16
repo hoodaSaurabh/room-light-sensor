@@ -19,6 +19,8 @@ The app is intentionally simple: it lives in the menu bar, samples once per seco
 - Low and high threshold alerts with hysteresis to avoid noisy repeated notifications.
 - Configurable notification cooldown.
 - Launch at login support.
+- Custom packaged app icon for Finder, Launch Services, and notification banners.
+- Settings migration from earlier builds that used the previous bundle identifier.
 - Native Swift, AppKit, and SwiftUI implementation.
 - Local-only settings and sensor readings.
 
@@ -120,7 +122,7 @@ Environment variables:
 | --- | --- |
 | `APP_NAME` | Display name for the app bundle. Defaults to `Room Light Sensor`. |
 | `APP_VERSION` | App version written into the bundle and DMG filename. Defaults to `1.0.0`. |
-| `BUILD_NUMBER` | Build number written into the bundle. Defaults to `1`. |
+| `BUILD_NUMBER` | Build number written into the bundle. Defaults to a timestamp. |
 | `BUNDLE_IDENTIFIER` | Reverse-DNS bundle identifier. Defaults to `com.hooda.room-light-sensor`. |
 | `ARCHS` | Space-separated architectures to build. Defaults to `arm64 x86_64`. |
 | `SIGN_IDENTITY` | Developer ID Application certificate. If omitted, the app is ad-hoc signed. |
@@ -135,6 +137,8 @@ Sources/RoomLightSensor/          App entry point
 Sources/RoomLightSensorCore/      AppKit, SwiftUI, sensor, settings, and alert logic
 Tests/RoomLightSensorCoreTests/   Unit tests for monitoring and threshold behavior
 Resources/Info.plist              App bundle metadata
+Resources/AppIcon.icns            Packaged app icon
+Scripts/generate-app-icon.swift   App icon and asset catalog generator
 Scripts/package-app.sh            Release packaging script
 ```
 
