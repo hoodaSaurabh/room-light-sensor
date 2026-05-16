@@ -8,8 +8,12 @@ final class StatusBarController: NSObject {
     private let popover = NSPopover()
     private let settings: SettingsStore
     private let monitor: LuxMonitor
+    private let notificationManager: NotificationManager
+    private let launchAtLoginManager: LaunchAtLoginManager
+    private let focusCoordinator = SettingsViewFocusCoordinator()
     private var cancellables = Set<AnyCancellable>()
     private var popoverAnchorWindow: NSWindow?
+    private var popoverClickMonitor: Any?
 
     init(
         settings: SettingsStore,
@@ -20,15 +24,12 @@ final class StatusBarController: NSObject {
         self.statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         self.settings = settings
         self.monitor = monitor
+        self.notificationManager = notificationManager
+        self.launchAtLoginManager = launchAtLoginManager
         super.init()
 
         configureStatusItem()
-        configurePopover(
-            settings: settings,
-            monitor: monitor,
-            notificationManager: notificationManager,
-            launchAtLoginManager: launchAtLoginManager
-        )
+        configurePopover()
         bindMonitor()
     }
 
@@ -45,20 +46,20 @@ final class StatusBarController: NSObject {
         button.title = "-- lx"
     }
 
-    private func configurePopover(
-        settings: SettingsStore,
-        monitor: LuxMonitor,
-        notificationManager: NotificationManager,
-        launchAtLoginManager: LaunchAtLoginManager
-    ) {
+    private func configurePopover() {
         popover.behavior = .transient
         popover.delegate = self
+        configurePopoverContent()
+    }
+
+    private func configurePopoverContent() {
         let hostingController = NSHostingController(
             rootView: SettingsView(
                 settings: settings,
                 monitor: monitor,
                 notificationManager: notificationManager,
-                launchAtLoginManager: launchAtLoginManager
+                launchAtLoginManager: launchAtLoginManager,
+                focusCoordinator: focusCoordinator
             )
         )
         hostingController.sizingOptions = [.preferredContentSize]
@@ -105,6 +106,8 @@ final class StatusBarController: NSObject {
     }
 
     private func showPopover(from button: NSStatusBarButton) {
+        configurePopoverContent()
+
         if let anchorWindow = makePopoverAnchorWindow(from: button),
            let anchorView = anchorWindow.contentView {
             popoverAnchorWindow = anchorWindow
@@ -114,11 +117,9 @@ final class StatusBarController: NSObject {
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         }
 
+        installPopoverClickMonitor()
         activatePopoverWindow()
-        Task { @MainActor [weak self] in
-            await Task.yield()
-            self?.activatePopoverWindow()
-        }
+        clearPopoverFocusAfterLayout()
     }
 
     private func makePopoverAnchorWindow(from button: NSStatusBarButton) -> NSWindow? {
@@ -151,12 +152,94 @@ final class StatusBarController: NSObject {
         NSApp.activate(ignoringOtherApps: true)
         popover.contentViewController?.view.window?.makeKeyAndOrderFront(nil)
     }
+
+    private func installPopoverClickMonitor() {
+        guard popoverClickMonitor == nil else {
+            return
+        }
+
+        popoverClickMonitor = NSEvent.addLocalMonitorForEvents(
+            matching: [.leftMouseDown, .rightMouseDown]
+        ) { [weak self] event in
+            guard let self,
+                  self.popover.isShown,
+                  let popoverWindow = self.popover.contentViewController?.view.window,
+                  event.window == popoverWindow else {
+                return event
+            }
+
+            if !self.eventTargetsEditableTextField(event, in: popoverWindow) {
+                self.clearPopoverFocus()
+            }
+
+            return event
+        }
+    }
+
+    private func removePopoverClickMonitor() {
+        if let popoverClickMonitor {
+            NSEvent.removeMonitor(popoverClickMonitor)
+            self.popoverClickMonitor = nil
+        }
+    }
+
+    private func eventTargetsEditableTextField(_ event: NSEvent, in window: NSWindow) -> Bool {
+        guard let contentView = window.contentView else {
+            return false
+        }
+
+        let location = contentView.convert(event.locationInWindow, from: nil)
+        guard let hitView = contentView.hitTest(location) else {
+            return false
+        }
+
+        return hitView.hasEditableTextFieldAncestor
+    }
+
+    private func clearPopoverFocus() {
+        popover.contentViewController?.view.window?.makeFirstResponder(nil)
+        focusCoordinator.clearFocus()
+    }
+
+    private func clearPopoverFocusAfterLayout() {
+        Task { @MainActor [weak self] in
+            self?.activatePopoverWindow()
+            self?.clearPopoverFocus()
+            await Task.yield()
+            self?.activatePopoverWindow()
+            self?.clearPopoverFocus()
+            try? await Task.sleep(nanoseconds: 100_000_000)
+            guard self?.popover.isShown == true else {
+                return
+            }
+            self?.clearPopoverFocus()
+        }
+    }
 }
 
 extension StatusBarController: NSPopoverDelegate {
+    func popoverDidShow(_ notification: Notification) {
+        clearPopoverFocusAfterLayout()
+    }
+
+    func popoverWillClose(_ notification: Notification) {
+        clearPopoverFocus()
+    }
+
     func popoverDidClose(_ notification: Notification) {
+        removePopoverClickMonitor()
         popoverAnchorWindow?.orderOut(nil)
         popoverAnchorWindow = nil
+    }
+}
+
+private extension NSView {
+    var hasEditableTextFieldAncestor: Bool {
+        if let textField = self as? NSTextField, textField.isEditable {
+            return true
+        }
+
+        return superview?.hasEditableTextFieldAncestor ?? false
     }
 }
 

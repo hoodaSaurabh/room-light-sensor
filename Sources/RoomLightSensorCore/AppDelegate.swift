@@ -1,4 +1,5 @@
 import AppKit
+import CoreServices
 
 @MainActor
 public final class AppDelegate: NSObject, NSApplicationDelegate {
@@ -13,6 +14,8 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     public func applicationDidFinishLaunching(_ notification: Notification) {
+        refreshBundleIconRegistration()
+
         let settings = SettingsStore()
         let notificationManager = NotificationManager(settings: settings)
         let launchAtLoginManager = LaunchAtLoginManager(settings: settings)
@@ -42,5 +45,16 @@ public final class AppDelegate: NSObject, NSApplicationDelegate {
 
     public func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         false
+    }
+
+    private func refreshBundleIconRegistration() {
+        // Notification banners use the Launch Services icon cache for the app bundle.
+        if let iconURL = Bundle.main.url(forResource: "AppIcon", withExtension: "icns"),
+           let icon = NSImage(contentsOf: iconURL) {
+            NSApp.applicationIconImage = icon
+        }
+
+        _ = LSRegisterURL(Bundle.main.bundleURL as CFURL, true)
+        NSWorkspace.shared.noteFileSystemChanged(Bundle.main.bundleURL.path)
     }
 }

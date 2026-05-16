@@ -75,6 +75,48 @@ final class LuxMonitorTests: XCTestCase {
         XCTAssertEqual(settings.highThreshold, 300)
     }
 
+    func testSettingLowThresholdPreservesEnteredValueAndRaisesHighWhenNeeded() {
+        let defaults = isolatedDefaults()
+        let settings = SettingsStore(defaults: defaults)
+
+        settings.setLowThreshold(500)
+
+        XCTAssertEqual(settings.lowThreshold, 500)
+        XCTAssertEqual(settings.highThreshold, 501)
+    }
+
+    func testSettingHighThresholdPreservesEnteredValueAndLowersLowWhenNeeded() {
+        let defaults = isolatedDefaults()
+        let settings = SettingsStore(defaults: defaults)
+
+        settings.setHighThreshold(50)
+
+        XCTAssertEqual(settings.lowThreshold, 49)
+        XCTAssertEqual(settings.highThreshold, 50)
+    }
+
+    func testMigratesLegacyDefaultsWhenRequested() {
+        let defaults = isolatedDefaults()
+        let legacyDefaults = isolatedDefaults()
+        legacyDefaults.set(25, forKey: "lowThreshold")
+        legacyDefaults.set(450, forKey: "highThreshold")
+        legacyDefaults.set(false, forKey: "notificationsEnabled")
+        legacyDefaults.set(false, forKey: "showLuxInMenuBar")
+        legacyDefaults.set(42, forKey: "alertCooldownSeconds")
+
+        let settings = SettingsStore(
+            defaults: defaults,
+            legacyDefaults: legacyDefaults,
+            migrateLegacyDefaults: true
+        )
+
+        XCTAssertEqual(settings.lowThreshold, 25)
+        XCTAssertEqual(settings.highThreshold, 450)
+        XCTAssertFalse(settings.notificationsEnabled)
+        XCTAssertFalse(settings.showLuxInMenuBar)
+        XCTAssertEqual(settings.alertCooldownSeconds, 42)
+    }
+
     private func isolatedDefaults() -> UserDefaults {
         let suiteName = "RoomLightSensorTests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!

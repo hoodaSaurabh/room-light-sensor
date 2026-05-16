@@ -7,7 +7,7 @@ import Foundation
 struct RoomLightSensorMain {
     private static var singleInstanceLockFileDescriptor: Int32 = -1
     private static let appSupportFolderName = "Room Light Sensor"
-    private static let singleInstanceLockFileName = "com.example.room-light-sensor.lock"
+    private static let singleInstanceLockFileName = "com.hooda.room-light-sensor.lock"
 
     @MainActor
     static func main() {

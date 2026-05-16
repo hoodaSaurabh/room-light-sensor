@@ -4,9 +4,9 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_NAME="${APP_NAME:-Room Light Sensor}"
 EXECUTABLE_NAME="RoomLightSensor"
-BUNDLE_IDENTIFIER="${BUNDLE_IDENTIFIER:-com.example.room-light-sensor}"
+BUNDLE_IDENTIFIER="${BUNDLE_IDENTIFIER:-com.hooda.room-light-sensor}"
 APP_VERSION="${APP_VERSION:-1.0.0}"
-BUILD_NUMBER="${BUILD_NUMBER:-1}"
+BUILD_NUMBER="${BUILD_NUMBER:-$(date +%Y%m%d%H%M%S)}"
 ARCHS="${ARCHS:-arm64 x86_64}"
 SIGN_IDENTITY="${SIGN_IDENTITY:-}"
 NOTARY_PROFILE="${NOTARY_PROFILE:-}"
@@ -15,6 +15,9 @@ BUILD_DIR="$ROOT_DIR/.build/package"
 APP_PATH="$BUILD_DIR/$APP_NAME.app"
 DMG_STAGING_DIR="$BUILD_DIR/dmg-root"
 DMG_PATH="$BUILD_DIR/$APP_NAME-$APP_VERSION.dmg"
+ASSET_CATALOG_PATH="$ROOT_DIR/.build/generated-app-icon.xcassets"
+
+swift "$ROOT_DIR/Scripts/generate-app-icon.swift"
 
 rm -rf "$BUILD_DIR"
 mkdir -p "$APP_PATH/Contents/MacOS" "$APP_PATH/Contents/Resources"
@@ -39,6 +42,24 @@ cp "$ROOT_DIR/Resources/Info.plist" "$APP_PATH/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier $BUNDLE_IDENTIFIER" "$APP_PATH/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $APP_VERSION" "$APP_PATH/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$APP_PATH/Contents/Info.plist"
+
+if [ -f "$ROOT_DIR/Resources/AppIcon.icns" ]; then
+    cp "$ROOT_DIR/Resources/AppIcon.icns" "$APP_PATH/Contents/Resources/AppIcon.icns"
+fi
+
+if [ -d "$ASSET_CATALOG_PATH" ]; then
+    xcrun actool \
+        --compile "$APP_PATH/Contents/Resources" \
+        --platform macosx \
+        --minimum-deployment-target 13.0 \
+        --app-icon AppIcon \
+        --output-partial-info-plist "$BUILD_DIR/assetcatalog-info.plist" \
+        "$ASSET_CATALOG_PATH" >/dev/null
+    /usr/libexec/PlistBuddy -c "Add :CFBundleIconFile string AppIcon" "$APP_PATH/Contents/Info.plist" 2>/dev/null \
+        || /usr/libexec/PlistBuddy -c "Set :CFBundleIconFile AppIcon" "$APP_PATH/Contents/Info.plist"
+    /usr/libexec/PlistBuddy -c "Add :CFBundleIconName string AppIcon" "$APP_PATH/Contents/Info.plist" 2>/dev/null \
+        || /usr/libexec/PlistBuddy -c "Set :CFBundleIconName AppIcon" "$APP_PATH/Contents/Info.plist"
+fi
 
 if [ -f "$ROOT_DIR/Resources/AppIcon.icns" ]; then
     cp "$ROOT_DIR/Resources/AppIcon.icns" "$APP_PATH/Contents/Resources/AppIcon.icns"

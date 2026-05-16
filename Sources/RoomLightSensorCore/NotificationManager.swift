@@ -47,12 +47,26 @@ final class NotificationManager: NSObject, ObservableObject, AlertDelivering {
     }
 
     func requestAuthorizationIfNeeded() {
-        center.requestAuthorization(options: [.alert, .sound]) { [weak self] _, error in
+        center.getNotificationSettings { [weak self] settings in
+            Task { @MainActor in
+                self?.authorizationStatus = settings.authorizationStatus
+                guard settings.authorizationStatus == .notDetermined else {
+                    return
+                }
+
+                self?.requestAuthorization { _ in }
+            }
+        }
+    }
+
+    private func requestAuthorization(completion: @escaping (Bool) -> Void) {
+        center.requestAuthorization(options: [.alert, .sound]) { [weak self] granted, error in
             Task { @MainActor in
                 if let error {
                     self?.lastErrorMessage = error.localizedDescription
                 }
                 self?.refreshAuthorizationStatus()
+                completion(granted)
             }
         }
     }
@@ -62,16 +76,38 @@ final class NotificationManager: NSObject, ObservableObject, AlertDelivering {
             return
         }
 
-        guard authorizationStatus == .authorized || authorizationStatus == .provisional else {
-            if authorizationStatus == .notDetermined {
-                requestAuthorizationIfNeeded()
-            }
-            return
-        }
+        let title = title(for: alert.kind)
+        let body = body(for: alert, lux: lux)
 
+        center.getNotificationSettings { [weak self] settings in
+            Task { @MainActor in
+                guard let self else {
+                    return
+                }
+
+                self.authorizationStatus = settings.authorizationStatus
+
+                guard settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional else {
+                    if settings.authorizationStatus == .notDetermined {
+                        self.requestAuthorization { [weak self] granted in
+                            guard granted else {
+                                return
+                            }
+                            self?.postNotification(title: title, body: body, alert: alert)
+                        }
+                    }
+                    return
+                }
+
+                self.postNotification(title: title, body: body, alert: alert)
+            }
+        }
+    }
+
+    private func postNotification(title: String, body: String, alert: ThresholdAlert) {
         let content = UNMutableNotificationContent()
-        content.title = title(for: alert.kind)
-        content.body = body(for: alert, lux: lux)
+        content.title = title
+        content.body = body
         content.sound = .default
 
         let request = UNNotificationRequest(

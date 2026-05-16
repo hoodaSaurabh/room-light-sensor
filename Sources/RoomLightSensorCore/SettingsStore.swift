@@ -10,7 +10,18 @@ final class SettingsStore: ObservableObject {
         static let showLuxInMenuBar = "showLuxInMenuBar"
         static let launchAtLoginEnabled = "launchAtLoginEnabled"
         static let alertCooldownSeconds = "alertCooldownSeconds"
+        static let didMigrateLegacyDefaults = "didMigrateLegacyDefaults"
     }
+
+    nonisolated private static let legacyBundleIdentifier = "com.example.room-light-sensor"
+    nonisolated private static let migratedKeys = [
+        Key.lowThreshold,
+        Key.highThreshold,
+        Key.notificationsEnabled,
+        Key.showLuxInMenuBar,
+        Key.launchAtLoginEnabled,
+        Key.alertCooldownSeconds
+    ]
 
     private let defaults: UserDefaults
 
@@ -21,8 +32,17 @@ final class SettingsStore: ObservableObject {
     @Published private(set) var launchAtLoginEnabled: Bool
     @Published private(set) var alertCooldownSeconds: TimeInterval
 
-    init(defaults: UserDefaults = .standard) {
+    init(
+        defaults: UserDefaults = .standard,
+        legacyDefaults: UserDefaults? = UserDefaults(suiteName: SettingsStore.legacyBundleIdentifier),
+        migrateLegacyDefaults: Bool? = nil
+    ) {
         self.defaults = defaults
+
+        let shouldMigrateLegacyDefaults = migrateLegacyDefaults ?? (defaults === UserDefaults.standard)
+        if shouldMigrateLegacyDefaults {
+            Self.migrateLegacyDefaults(from: legacyDefaults, to: defaults)
+        }
 
         let configuration = ThresholdConfiguration(
             low: defaults.doubleValue(
@@ -49,6 +69,23 @@ final class SettingsStore: ObservableObject {
         persistThresholds()
     }
 
+    private static func migrateLegacyDefaults(from legacyDefaults: UserDefaults?, to defaults: UserDefaults) {
+        guard defaults.object(forKey: Key.didMigrateLegacyDefaults) == nil else {
+            return
+        }
+
+        if let legacyDefaults {
+            for key in migratedKeys where defaults.object(forKey: key) == nil {
+                guard let value = legacyDefaults.object(forKey: key) else {
+                    continue
+                }
+                defaults.set(value, forKey: key)
+            }
+        }
+
+        defaults.set(true, forKey: Key.didMigrateLegacyDefaults)
+    }
+
     var thresholdConfiguration: ThresholdConfiguration {
         ThresholdConfiguration(
             low: lowThreshold,
@@ -59,13 +96,15 @@ final class SettingsStore: ObservableObject {
 
     func setLowThreshold(_ value: Double) {
         let safeValue = value.isFinite ? max(0, value) : ThresholdConfiguration.defaultLow
-        lowThreshold = min(safeValue, highThreshold - ThresholdConfiguration.minimumGap)
+        lowThreshold = safeValue
+        highThreshold = max(highThreshold, lowThreshold + ThresholdConfiguration.minimumGap)
         persistThresholds()
     }
 
     func setHighThreshold(_ value: Double) {
-        let safeValue = value.isFinite ? max(0, value) : ThresholdConfiguration.defaultHigh
-        highThreshold = max(safeValue, lowThreshold + ThresholdConfiguration.minimumGap)
+        let safeValue = value.isFinite ? max(ThresholdConfiguration.minimumGap, value) : ThresholdConfiguration.defaultHigh
+        highThreshold = safeValue
+        lowThreshold = min(lowThreshold, highThreshold - ThresholdConfiguration.minimumGap)
         persistThresholds()
     }
 
